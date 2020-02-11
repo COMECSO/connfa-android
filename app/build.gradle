@@ -1,0 +1,50 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion Integer.parseInt(project.COMPILE_SDK_VERSION)
+
+    defaultConfig {
+        minSdkVersion Integer.parseInt(project.MIN_SDK_VERSION)
+        targetSdkVersion Integer.parseInt(project.TARGET_SDK_VERSION)
+        multiDexEnabled true
+    }
+
+    flavorDimensions "version"
+
+    productFlavors {
+
+        guadec {
+            applicationId "com.connfa.comecso"
+            versionCode 7 //increments upwards
+            versionName "1.0.6"
+            dimension "version"
+        }
+
+    }
+
+    lintOptions {
+        checkReleaseBuilds true
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError true
+    }
+}
+
+dependencies {
+    api fileTree(dir: 'libs', include: ['*.jar'])
+    api project(':drupalSDK')
+
+    api 'androidx.legacy:legacy-support-v4:1.0.0'
+    api 'androidx.appcompat:appcompat:1.0.2'
+    api 'androidx.multidex:multidex:2.0.1'
+    api 'com.google.android.material:material:1.0.0'
+    api 'com.google.code.gson:gson:2.8.5'
+    api 'org.jetbrains:annotations:17.0.0'
+    api 'com.android.volley:volley:1.1.1'
+
+    api 'com.google.android.gms:play-services-maps:17.0.0'
+
+    api 'com.jpardogo.materialtabstrip:library:1.1.1'
+
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:8.2.1'
+}

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <FrameLayout
+        android:id="@+id/header"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:background="@color/primary"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp">
+
+        <Spinner
+            android:id="@+id/spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:dropDownWidth="wrap_content"
+            android:minWidth="60dp"
+            android:spinnerMode="dialog" />
+
+    </FrameLayout>
+
+    <com.lemberg.connfa.ui.view.TouchImageView
+        android:id="@+id/floor_plan_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/header"
+        android:scaleType="fitCenter"
+        android:src="@drawable/empty_image" />
+
+
+    <FrameLayout
+        android:id="@+id/layout_placeholder"
+        android:layout_width="match_parent"
+        android:layout_below="@id/header"
+
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_gravity="center"
+                app:srcCompat="@drawable/ic_no_floor_plan"
+                android:layout_height="wrap_content" />
+
+            <com.lemberg.connfa.ui.view.FontTextView
+                android:layout_width="wrap_content"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="@dimen/margin_top_placeholder_text"
+                android:layout_height="wrap_content"
+                android:text="@string/placeholder_floor_plan"
+                app:custom_font="@string/regular_font"
+                android:textSize="@dimen/text_size_placeholder"
+                android:textColor="@color/placeholder_text"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+
+</RelativeLayout>

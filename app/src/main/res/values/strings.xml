@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="Sessions">Mesas</string>
+    <string name="bofs">Eventos especiales</string>
+    <string name="speakers">Ponentes / Búsqueda</string>
+    <string name="speakers_only">Ponentes</string>
+    <string name="whoisgoing">¿Quién va asistir?</string>
+    <string name="nodetails">Sin detalles</string>
+    <string name="location">Localización</string>
+    <string name="about">Información</string>
+    <string name="my_schedule">Mis eventos</string>
+    <string name="social_events">Eventos sociales</string>
+    <string name="search">Búsqueda</string>
+    <string name="filter">Filtro</string>
+    <string name="refresh">Recargar</string>
+    <string name="experience_level">Salón:</string>
+    <string name="tracks">Ejes temáticos:</string>
+    <string name="exp_levels">Salones:</string>
+    <string name="NoConnectionMessage">La conexión a internet no esta disponible en este momento. Por favor, inténtelo nuevamente más tarde.</string>
+    <string name="exp_level">Salón:</string>
+    <string name="body_share">Hey, pienso que esto te podría interesar:</string>
+    <string name="title_share">Compartir utilizando</string>
+    <string name="event_category">Categoría del evento</string>
+    <string name="speaker_category">Ponente</string>
+    <string name="about_category">Información</string>
+    <string name="action_add_to_favorites">Añadir a favoritos</string>
+    <string name="action_remove_from_favorites">Eliminar de favoritos</string>
+    <string name="no_apps_can_perform_this_action">La aplicación no puede executar esta acción</string>
+    <string name="share">Compartir</string>
+    <string name="no_search_result">No se encontró coincidencias</string>
+    <string name="APPLY">APLICAR</string>
+    <string name="CLEAR">LIMPIAR</string>
+    <string name="access">ACCEDER</string>
+    <string name="placeholder_no_matching_events">No se encontraron eventos</string>
+    <string name="placeholder_sessions">Actualmente no hay mesas</string>
+    <string name="placeholder_bofs">Actualmente no hay eventos especiales</string>
+    <string name="placeholder_social_events">Actualmente no hay eventos sociales</string>
+    <string name="placeholder_speakers">Actualmente no hay ponentes</string>
+    <string name="placeholder_schedule">Tu lista de eventos favoritos está vacía. Por favor añade algunos eventos.</string>
+    <string name="placeholder_shared_schedule">Actualmente tus eventos favoritos compartidos están vacíos</string>
+    <string name="placeholder_floor_plan">Actualmente no hay ubicaciones de los salones</string>
+    <string name="placeholder_location">La dirección no está especificada</string>
+    <string name="placeholder_social_media">Actualmente no hay tweets</string>
+    <string name="placeholder_info">Actualmente no hay información</string>
+    <string name="placeholder_no_details">No hay detalles</string>
+    <string name="dont_miss_it">¡No te lo pierdas!</string>
+    <string name="twenty_four_hours">24 HORAS</string>
+    <string name="Attention">Atención</string>
+    <string name="start_in_5_minutes">" empieza en 5 minutos"</string>
+    <string name="to">a %s</string>
+    <string name="speaker_separator">", "</string>
+    <string name="css"><![CDATA[<link rel=\'stylesheet\' href=\'css/style.css\' type=\'text/css\'>]]></string>
+    <string name="irrelevant_timezone_notificaiton" formatted="false"><![CDATA[Las fechas de los eventos estan dadas en %s (%s) zona horaria]]></string>
+    <string name="dont_show_message_again">No mostrar este mensaje otra vez</string>
+    <string name="no_default_browser_found">No se encontró un navegador predeterminado</string>
+    <string name="social_media">Redes sociales</string>
+    <string name="floor_plan">Ubicación de salones</string>
+    <string name="Session">\u202F\u202F\u202FMesa\u202F\u202F\u202F</string>
+    <string name="BoF">\u202F\u202F\u202FEvento especial\u202F\u202F\u202F</string>
+    <string name="Socials">\u202F\u202F\u202FEvento social\u202F\u202F\u202F</string>
+    <string name="event_details">Acerca del evento</string>
+    <string name="speaker_details">Acerca del conferencista</string>
+
+    <string name="share_your_schedule_with_friends">Comparta sus eventos favoritos con sus amigos</string>
+    <string name="tap_the_three_dots">Seleccione los tres puntos y elija la opción \'Compartir mis favoritos\'\n</string>
+    <string name="warning_text">\nEsta es una versión beta. \nEsperamos obtener tu retroalimentación de esta característica. ¡Gracias de antemano!</string>
+    <string name="add_a_schedule">Importar favoritos</string>
+    <string name="add">Añadir</string>
+    <string name="undo">Deshacer</string>
+    <string name="schedule">Favorito\u0020</string>
+
+    <string name="title_activity_test">Actividad_de_prueba</string>
+    <string name="schedule_name">Nombre de la lista de favoritos</string>
+    <string name="you_may_get_this_code_from_a_person_who_has_already_shared_his_her_own_schedule_with_you">Puedes obtener este código de una persona que ya compartió sus favoritos contigo.</string>
+    <string name="this_schedule_already_exist">La lista de favoritos ya existe</string>
+    <string name="this_schedule_name_already_exist">El nombre de esta lista de favoritos actualmente ya existe</string>
+    <string name="url_is_corrupted">La URL compartida está corrupta</string>
+    <string name="share_my_schedule">Compartir mis favoritos:\u202F</string>
+</resources>

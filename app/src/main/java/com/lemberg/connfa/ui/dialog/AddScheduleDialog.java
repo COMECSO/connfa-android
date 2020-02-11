@@ -1,0 +1,112 @@
+package com.lemberg.connfa.ui.dialog;
+
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
+
+import com.lemberg.connfa.R;
+import com.lemberg.connfa.app.App;
+import com.lemberg.connfa.model.Listener;
+import com.lemberg.connfa.model.Model;
+import com.lemberg.connfa.model.managers.ToastManager;
+import com.lemberg.drupal.http.base.ResponseData;
+
+import java.util.Objects;
+
+public class AddScheduleDialog extends DialogFragment {
+
+    public static final String TAG = AddScheduleDialog.class.getName();
+    public static final int RESULT_OK_CODE_IS_EXIST = 898;
+    public static final String EXTRA_SCHEDULE_CODE = "extra_schedule_code";
+
+    public static AddScheduleDialog newInstance() {
+
+        Bundle args = new Bundle();
+
+        AddScheduleDialog fragment = new AddScheduleDialog();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        ViewGroup contentView = (ViewGroup) LayoutInflater.from(getActivity()).inflate(R.layout.dialog_add_shedule, null);
+
+        final EditText editTextId = contentView.findViewById(R.id.uniqueCode);
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+        alertDialogBuilder.setTitle(R.string.add_a_schedule);
+        alertDialogBuilder.setView(contentView);
+        alertDialogBuilder.setPositiveButton(Objects.requireNonNull(getActivity()).getString(R.string.add), null);
+
+        alertDialogBuilder.setNegativeButton(getActivity().getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (getTargetFragment() != null) {
+                    getTargetFragment().onActivityResult(getTargetRequestCode(), Activity.RESULT_CANCELED, Objects.requireNonNull(getActivity()).getIntent());
+                }
+            }
+        });
+        final AlertDialog dialog = alertDialogBuilder.create();
+
+        dialog.show();
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.favorite));
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.favorite));
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String text = editTextId.getText().toString();
+                if (TextUtils.isEmpty(text)) {
+                    ToastManager.message(getContext(), "Please enter code");
+                } else {
+                    final long code = Long.parseLong(text);
+                    if (Model.instance().getSharedScheduleManager().checkIfCodeIsExist(code)) {
+                        if (getTargetFragment() != null) {
+                            getTargetFragment().onActivityResult(getTargetRequestCode(), RESULT_OK_CODE_IS_EXIST, Objects.requireNonNull(getActivity()).getIntent());
+                        }
+                        dialog.dismiss();
+                    } else {
+                        if (Model.instance().getSharedScheduleManager().getMyScheduleCode() == code) {
+                            ToastManager.message(getContext(), "Your own code was entered");
+                        } else {
+                            Model.instance().getSharedScheduleManager().fetchSharedEventsByCode(code, "Schedule " + code, new Listener<ResponseData, ResponseData>() {
+                                @Override
+                                public void onSucceeded(ResponseData result) {
+                                    if (getTargetFragment() != null) {
+                                        getTargetFragment().onActivityResult(getTargetRequestCode(), Activity.RESULT_OK, Objects.requireNonNull(getActivity()).getIntent().putExtra(EXTRA_SCHEDULE_CODE, code));
+                                    }
+                                    dialog.dismiss();
+                                }
+
+                                @Override
+                                public void onFailed(ResponseData result) {
+                                    ToastManager.messageSync(App.getContext(), "Schedule not found. Please check your code");
+                                }
+                            });
+
+
+                        }
+                    }
+
+                }
+            }
+        });
+
+        return dialog;
+    }
+}
+
+

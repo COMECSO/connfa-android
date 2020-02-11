@@ -1,0 +1,698 @@
+package com.lemberg.connfa.ui.fragment;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
+import androidx.viewpager.widget.ViewPager;
+
+import com.astuetz.PagerSlidingTabStrip;
+import com.google.android.material.snackbar.Snackbar;
+import com.lemberg.connfa.R;
+import com.lemberg.connfa.app.App;
+import com.lemberg.connfa.model.Listener;
+import com.lemberg.connfa.model.Model;
+import com.lemberg.connfa.model.PreferencesManager;
+import com.lemberg.connfa.model.UpdateRequest;
+import com.lemberg.connfa.model.UpdatesManager;
+import com.lemberg.connfa.model.managers.SharedScheduleManager;
+import com.lemberg.connfa.model.managers.ToastManager;
+import com.lemberg.drupal.http.base.ResponseData;
+import com.lemberg.connfa.ui.activity.HomeActivity;
+import com.lemberg.connfa.ui.adapter.BaseEventDaysPagerAdapter;
+import com.lemberg.connfa.ui.dialog.AddScheduleDialog;
+import com.lemberg.connfa.ui.dialog.CreateScheduleDialog;
+import com.lemberg.connfa.ui.dialog.EditScheduleDialog;
+import com.lemberg.connfa.ui.drawer.BofsStrategy;
+import com.lemberg.connfa.ui.drawer.EventHolderFragmentStrategy;
+import com.lemberg.connfa.ui.drawer.EventMode;
+import com.lemberg.connfa.ui.drawer.FavoritesStrategy;
+import com.lemberg.connfa.ui.drawer.FriendFavoritesStrategy;
+import com.lemberg.connfa.ui.drawer.ProgramStrategy;
+import com.lemberg.connfa.ui.drawer.SocialStrategy;
+import com.lemberg.connfa.ui.receiver.ReceiverManager;
+import com.lemberg.connfa.ui.view.MaterialTapTargetPrompt;
+import com.lemberg.connfa.util.DateUtils;
+import com.lemberg.connfa.util.NetworkUtils;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.Objects;
+
+public class EventHolderFragment extends Fragment {
+
+    public static final String TAG = "ProjectsFragment";
+    private static final String EXTRAS_ARG_MODE = "EXTRAS_ARG_MODE";
+    private static final int ADD_SCHEDULE_DIALOG_REQUEST_CODE = 855;
+    private static final int CHANGE_SCHEDULE_NAME_DIALOG_REQUEST_CODE = 8255;
+    private static final int SET_SCHEDULE_NAME_DIALOG_REQUEST_CODE = 82555;
+    private static final String SHARED_SCHEDULE_CODE_EXTRAS = "shared_schedule_code_extras";
+
+    private ViewPager mViewPager;
+    private PagerSlidingTabStrip mPagerTabs;
+    private BaseEventDaysPagerAdapter mAdapter;
+
+    private View mLayoutPlaceholder;
+    private ImageView mImageViewNoContent;
+    private TextView mTextViewNoContent;
+    private boolean mIsFilterUsed;
+    private EventHolderFragmentStrategy strategy;
+    private boolean isItemRefreshEnabled = true;
+    private ArrayAdapter<String> spinnerAdapter;
+    private Spinner navigationSpinner;
+    private SharedScheduleManager scheduleManager = Model.instance().getSharedScheduleManager();
+    private ProgressBar mProgressBar;
+    private boolean undoWasClicked;
+
+    private UpdatesManager.DataUpdatedListener updateReceiver = new UpdatesManager.DataUpdatedListener() {
+        @Override
+        public void onDataUpdated(List<UpdateRequest> requests) {
+            mProgressBar.setVisibility(View.GONE);
+            isItemRefreshEnabled = true;
+            updateData(requests);
+            Objects.requireNonNull(getActivity()).invalidateOptionsMenu();
+
+        }
+    };
+    private ReceiverManager favoriteReceiver = new ReceiverManager(new ReceiverManager.FavoriteUpdatedListener() {
+        @Override
+        public void onFavoriteUpdated(long eventId, boolean isFavorite) {
+            updateFavorites();
+        }
+    });
+
+    public static EventHolderFragment newInstance(EventMode eventMode) {
+        EventHolderFragment fragment = new EventHolderFragment();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(EXTRAS_ARG_MODE, eventMode);
+        fragment.setArguments(bundle);
+
+        return fragment;
+    }
+
+    public static EventHolderFragment newInstance(EventMode eventMode, long code) {
+        EventHolderFragment fragment = new EventHolderFragment();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(EXTRAS_ARG_MODE, eventMode);
+        bundle.putLong(SHARED_SCHEDULE_CODE_EXTRAS, code);
+        fragment.setArguments(bundle);
+
+        return fragment;
+    }
+
+    @Override
+    public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fr_holder_event, container, false);
+        mProgressBar = view.findViewById(R.id.progressBar);
+        return view;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        if (!isFavoriteScreen()) {
+            inflater.inflate(R.menu.menu_filter, menu);
+            MenuItem filter = menu.findItem(R.id.actionFilter);
+            if (filter != null) {
+                updateFilterState(filter);
+            }
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        if (isFavoriteScreen()) {
+            menu.clear();
+            MenuInflater menuInflater = Objects.requireNonNull(getActivity()).getMenuInflater();
+            if (strategy.isMySchedule()) {
+                showSearchPrompt();
+                menuInflater.inflate(R.menu.menu_my_schedule, menu);
+                updateMenuTitles(menu);
+            } else {
+                menuInflater.inflate(R.menu.menu_added_schedule, menu);
+            }
+        }
+
+        MenuItem item = menu.findItem(R.id.actionRefresh);
+
+        if (isItemRefreshEnabled) {
+            item.setEnabled(true);
+            item.getIcon().setAlpha(255);
+        } else {
+            item.setEnabled(false);
+            item.getIcon().setAlpha(130);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.actionFilter:
+                showFilter();
+                break;
+            case R.id.actionAddSchedule:
+                if (NetworkUtils.isOn(Objects.requireNonNull(getContext()))) {
+                    showAddScheduleDialog();
+                } else {
+                    ToastManager.message(getContext(), getString(R.string.NoConnectionMessage));
+                }
+                break;
+            case R.id.actionShareMySchedule:
+                shareSchedule();
+                break;
+            case R.id.actionEditSchedule:
+                showChangeScheduleNameDialog(Model.instance().getSharedScheduleManager().getCurrentScheduleId(), Model.instance().getSharedScheduleManager().getCurrentFriendScheduleName());
+                break;
+            case R.id.actionRemoveSchedule:
+                undo(Model.instance().getSharedScheduleManager().getCurrentFriendScheduleName() + " is removed");
+                Model.instance().getSharedScheduleManager().deleteSharedScheduleFromCache();
+                refreshSpinner();
+                break;
+
+            case R.id.actionRefresh:
+                refreshContent();
+                break;
+        }
+        return true;
+    }
+
+
+    @Override
+    public void onViewCreated(@NotNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        Model.instance().getUpdatesManager().registerUpdateListener(updateReceiver);
+        favoriteReceiver.register(getActivity());
+        initData();
+        initView();
+        new LoadData().execute();
+        final long sharedScheduleCode;
+        if (getArguments() != null) {
+            sharedScheduleCode = getArguments().getLong(SHARED_SCHEDULE_CODE_EXTRAS);
+
+            if (sharedScheduleCode > 0) {
+                if (Model.instance().getSharedScheduleManager().checkIfCodeIsExist(sharedScheduleCode)) {
+                    refreshSpinner();
+                } else {
+                    if (NetworkUtils.isOn(Objects.requireNonNull(getContext()))) {
+                        fetchSharedEventsByCode(sharedScheduleCode, "Schedule " + sharedScheduleCode);
+                    } else {
+                        ToastManager.messageSync(getContext(), getString(R.string.NoConnectionMessage));
+                    }
+
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        Model.instance().getUpdatesManager().unregisterUpdateListener(updateReceiver);
+        favoriteReceiver.unregister(getActivity());
+        disableCustomToolBar();
+        super.onDestroyView();
+    }
+
+    private void initData() {
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            EventMode eventMode = (EventMode) bundle.getSerializable(EXTRAS_ARG_MODE);
+            if (eventMode != null) {
+                switch (eventMode) {
+                    case Program:
+                        strategy = new ProgramStrategy();
+                        break;
+                    case Bofs:
+                        strategy = new BofsStrategy();
+                        break;
+                    case Social:
+                        strategy = new SocialStrategy();
+                        break;
+                    case Favorites:
+                        strategy = new FavoritesStrategy();
+                        setCustomToolBar();
+                        postAllSchedulesAsynchronously();
+                        break;
+                }
+            }
+        }
+    }
+
+    private void initView() {
+        View view = getView();
+        if (view == null) {
+            return;
+        }
+
+        mLayoutPlaceholder = view.findViewById(R.id.layout_placeholder);
+
+        mAdapter = new BaseEventDaysPagerAdapter(getChildFragmentManager());
+        mViewPager = view.findViewById(R.id.viewPager);
+        mViewPager.setAdapter(mAdapter);
+        mPagerTabs = getView().findViewById(R.id.pager_tab_strip);
+        mPagerTabs.setViewPager(mViewPager);
+        mTextViewNoContent = view.findViewById(R.id.text_view_placeholder);
+        mImageViewNoContent = view.findViewById(R.id.image_view_placeholder);
+        mProgressBar = view.findViewById(R.id.progressBar);
+
+        setHasOptionsMenu(true);
+    }
+
+
+    @SuppressLint("StaticFieldLeak")
+    class LoadData extends AsyncTask<Void, Void, List<Long>> {
+        @Override
+        protected List<Long> doInBackground(Void... params) {
+            return strategy.getDayList();
+        }
+
+        @Override
+        protected void onPostExecute(List<Long> result) {
+            if (getActivity() != null) {
+                updateViews(result);
+            }
+        }
+    }
+
+
+    private void updateViews(List<Long> dayList) {
+        if (dayList.isEmpty()) {
+            mPagerTabs.setVisibility(View.GONE);
+            mLayoutPlaceholder.setVisibility(View.VISIBLE);
+
+            if (mIsFilterUsed) {
+                mImageViewNoContent.setVisibility(View.GONE);
+                mTextViewNoContent.setText(getString(R.string.placeholder_no_matching_events));
+            } else {
+                mImageViewNoContent.setVisibility(View.VISIBLE);
+                mImageViewNoContent.setImageResource(strategy.getImageResId());
+                mTextViewNoContent.setText(App.getContext().getText(strategy.getTextResId()));
+            }
+        } else {
+            mLayoutPlaceholder.setVisibility(View.GONE);
+            mPagerTabs.setVisibility(View.VISIBLE);
+        }
+        mAdapter.setData(dayList, strategy);
+        switchToCurrentDay(dayList);
+    }
+
+    private void switchToCurrentDay(List<Long> days) {
+        int item = 0;
+        for (Long millis : days) {
+            if (DateUtils.getInstance().isToday(millis) ||
+                    DateUtils.getInstance().isAfterCurrentDate(millis)) {
+                mViewPager.setCurrentItem(item);
+                break;
+            }
+            item++;
+        }
+    }
+
+    private void showFilter() {
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        if (activity instanceof HomeActivity) {
+
+            if (!((HomeActivity) activity).mFilterDialog.isAdded()) {
+                ((HomeActivity) activity).mFilterDialog.show(getActivity().getSupportFragmentManager(), "filter");
+            }
+        }
+    }
+
+    private void updateFilterState(@NotNull MenuItem filter) {
+        mIsFilterUsed = false;
+        List<Long> levelIds = PreferencesManager.getInstance().loadExpLevel();
+        List<Long> trackIds = PreferencesManager.getInstance().loadTracks();
+
+        if (!levelIds.isEmpty() || !trackIds.isEmpty()) {
+            mIsFilterUsed = true;
+        }
+
+        if (mIsFilterUsed) {
+            filter.setIcon(getResources().getDrawable(R.drawable.ic_filter, null));
+        } else {
+            filter.setIcon(getResources().getDrawable(R.drawable.ic_filter_empty, null));
+        }
+    }
+
+    private void updateData(List<UpdateRequest> requests) {
+        if (strategy.update(requests)) {
+            new LoadData().execute();
+        }
+    }
+
+
+    private void updateFavorites() {
+        if (getView() != null) {
+            if (strategy.updateFavorites()) {
+                new LoadData().execute();
+            }
+        }
+    }
+
+
+    public void showSearchPrompt() {
+
+        if (!PreferencesManager.getInstance().getFirstRunFlag()) {
+            PreferencesManager.getInstance().saveFirstRunFlag();
+            new MaterialTapTargetPrompt.Builder((AppCompatActivity) getActivity())
+                    .setPrimaryText(R.string.share_your_schedule_with_friends)
+                    .setSecondaryText(setAltitudeSpan())
+                    .setSecondaryTextSize(R.dimen.text_size_small)
+                    .setAnimationInterpolator(new FastOutSlowInInterpolator())
+                    .setMaxTextWidth(1000f)
+                    .setIcon(R.drawable.ic_menu_more)
+                    .setTarget(R.id.promptAnchor)
+                    .setBackgroundColour(getResources().getColor(R.color.primary))
+                    .setIconDrawableColourFilter(getResources().getColor(R.color.primary))
+                    .show();
+        }
+    }
+
+    private void setCustomToolBar() {
+        if (Model.instance().getSharedScheduleManager().getAllSchedulesNameList().size() == 1) {
+            return;
+        }
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+
+        androidx.appcompat.app.ActionBar toolbar = null;
+
+        if (activity != null) {
+            toolbar = activity.getSupportActionBar();
+        }
+
+        SharedScheduleManager sharedScheduleManager = Model.instance().getSharedScheduleManager();
+
+        spinnerAdapter = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.item_spinner, sharedScheduleManager.getAllSchedulesNameList());
+        spinnerAdapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item);
+
+        navigationSpinner = new Spinner(getContext());
+        navigationSpinner.setAdapter(spinnerAdapter);
+        navigationSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        if (toolbar != null) {
+            toolbar.setCustomView(navigationSpinner);
+            toolbar.setDisplayShowCustomEnabled(true);
+            toolbar.setDisplayShowTitleEnabled(false);
+        }
+        navigationSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Model.instance().getSharedScheduleManager().setCurrentSchedule(position);
+                if (position == 0) {
+                    strategy = new FavoritesStrategy();
+                    Objects.requireNonNull(getActivity()).invalidateOptionsMenu();
+
+                } else {
+                    strategy = new FriendFavoritesStrategy();
+                    Objects.requireNonNull(getActivity()).invalidateOptionsMenu();
+                }
+                new LoadData().execute();
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+    }
+
+    private void disableCustomToolBar() {
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        androidx.appcompat.app.ActionBar toolbar = null;
+
+        if (activity != null) {
+            toolbar = activity.getSupportActionBar();
+        }
+
+        if (toolbar != null) {
+            toolbar.setDisplayShowTitleEnabled(true);
+            toolbar.setDisplayShowCustomEnabled(false);
+        }
+    }
+
+    private void setToolbarTitle() {
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        androidx.appcompat.app.ActionBar toolbar = null;
+
+        if (activity != null) {
+            toolbar = activity.getSupportActionBar();
+        }
+
+        if (toolbar != null) {
+            toolbar.setTitle(getString(R.string.my_schedule));
+        }
+    }
+
+    private boolean isFavoriteScreen() {
+        return strategy.getEventMode() == EventMode.Favorites || strategy.getEventMode() == EventMode.SharedSchedules;
+    }
+
+    private void shareSchedule() {
+
+        if (!NetworkUtils.isOn(Objects.requireNonNull(getContext()))) {
+            ToastManager.message(getContext(), getString(R.string.NoConnectionMessage));
+            return;
+        }
+
+        if (strategy.getDayList().isEmpty()) {
+            ToastManager.message(getContext(), "Currently you have no favorites");
+            return;
+        }
+
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_SUBJECT, "My Schedule");
+        sendIntent.putExtra(Intent.EXTRA_TEXT, getEmailBody().toString());
+        sendIntent.setType("text/plain");
+        startActivity(sendIntent);
+
+
+    }
+
+    private StringBuilder getEmailBody() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Hi, I have just published/shared my schedule for ")
+                .append(getString(R.string.app_name))
+                .append(" where I will be an attendee.")
+                .append(" Here is the link to add my schedule into the app: ")
+                .append("https://connfa-integration.uat.link/schedule/share?code=")
+                .append(scheduleManager.getMyScheduleCode())
+                .append("\n If you have any issues with the link, use the Schedule Unique Code in the app to add my schedule manually.\n")
+                .append("\nSchedule Unique Code: ")
+                .append(scheduleManager.getMyScheduleCode());
+        return builder;
+    }
+
+    void showAddScheduleDialog() {
+        if (getFragmentManager() != null) {
+            DialogFragment newFragment = AddScheduleDialog.newInstance();
+            newFragment.setTargetFragment(this, ADD_SCHEDULE_DIALOG_REQUEST_CODE);
+            newFragment.show(getFragmentManager(), AddScheduleDialog.TAG);
+        }
+    }
+
+    void showChangeScheduleNameDialog(long code, String name) {
+        if (getFragmentManager() != null) {
+            DialogFragment newFragment = CreateScheduleDialog.newEditDialogInstance(code, name);
+            newFragment.setTargetFragment(this, CHANGE_SCHEDULE_NAME_DIALOG_REQUEST_CODE);
+            newFragment.show(getFragmentManager(), EditScheduleDialog.TAG);
+        }
+    }
+
+    void showSetNameDialog(long code) {
+        if (getFragmentManager() != null) {
+            mProgressBar.setVisibility(View.VISIBLE);
+            DialogFragment newFragment = CreateScheduleDialog.newCreateDialogInstance(code);
+            newFragment.setTargetFragment(this, SET_SCHEDULE_NAME_DIALOG_REQUEST_CODE);
+            newFragment.show(getFragmentManager(), CreateScheduleDialog.TAG);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case ADD_SCHEDULE_DIALOG_REQUEST_CODE:
+                mProgressBar.setVisibility(View.GONE);
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        long newScheduleCode = data.getLongExtra(AddScheduleDialog.EXTRA_SCHEDULE_CODE, SharedScheduleManager.MY_DEFAULT_SCHEDULE_CODE);
+                        showSetNameDialog(newScheduleCode);
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        break;
+                    case AddScheduleDialog.RESULT_OK_CODE_IS_EXIST:
+                        refreshSpinner();
+                        break;
+                }
+                break;
+            case SET_SCHEDULE_NAME_DIALOG_REQUEST_CODE:
+                mProgressBar.setVisibility(View.GONE);
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        String name = data.getStringExtra(CreateScheduleDialog.EXTRA_SCHEDULE_NAME);
+                        Model.instance().getSharedScheduleManager().renameSchedule(name);
+                        refreshSpinner();
+
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        break;
+                }
+                break;
+            case CHANGE_SCHEDULE_NAME_DIALOG_REQUEST_CODE:
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        String newName = data.getStringExtra(EditScheduleDialog.EXTRA_SCHEDULE_NAME);
+                        Model.instance().getSharedScheduleManager().renameSchedule(newName);
+                        refreshSpinner();
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        break;
+                }
+                break;
+        }
+
+    }
+
+    private void undo(String message) {
+        final Snackbar snack = Snackbar.make(Objects.requireNonNull(getView()), message, Snackbar.LENGTH_LONG);
+        snack.setAction(R.string.undo, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedScheduleManager manager = Model.instance().getSharedScheduleManager();
+                manager.restoreSchedule();
+                refreshSpinner();
+                undoWasClicked = true;
+
+            }
+        });
+
+        snack.getView().addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) {
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                if (!undoWasClicked) {
+                    Model.instance().getSharedScheduleManager().deleteSharedSchedule();
+                    refreshContent();
+                }
+                undoWasClicked = false;
+
+            }
+        });
+        snack.setActionTextColor(Color.parseColor("#65B6AA"));
+        snack.show();
+
+    }
+
+    private void refreshSpinner() {
+        SharedScheduleManager sharedScheduleManager = Model.instance().getSharedScheduleManager();
+        List<String> allSchedulesNameList = sharedScheduleManager.getAllSchedulesNameList();
+        if (allSchedulesNameList.size() == 1) {
+            disableCustomToolBar();
+            setToolbarTitle();
+            strategy = new FavoritesStrategy();
+            new LoadData().execute();
+        } else {
+            setCustomToolBar();
+            spinnerAdapter.clear();
+            spinnerAdapter.addAll(allSchedulesNameList);
+            strategy = new FriendFavoritesStrategy();
+        }
+        setSpinnerPosition(Model.instance().getSharedScheduleManager().getItemPosition());
+        Objects.requireNonNull(getActivity()).invalidateOptionsMenu();
+    }
+
+    private void setSpinnerPosition(int position) {
+        navigationSpinner.setSelection(position);
+    }
+
+    private void postAllSchedulesAsynchronously() {
+        Model.instance().getSharedScheduleManager().postAllSchedules();
+    }
+
+    private void refreshContent() {
+        if (NetworkUtils.isOn(Objects.requireNonNull(getContext()))) {
+            mProgressBar.setVisibility(View.VISIBLE);
+            UpdatesManager.startLoading(null, Model.instance().getUpdatesManager());
+
+            isItemRefreshEnabled = false;
+            Objects.requireNonNull(getActivity()).invalidateOptionsMenu();
+        } else {
+            ToastManager.messageSync(getContext(), getString(R.string.NoConnectionMessage));
+        }
+    }
+
+    public void fetchSharedEventsByCode(final long scheduleCode, final String name) {
+        mProgressBar.setVisibility(View.VISIBLE);
+        Model.instance().getSharedScheduleManager().fetchSharedEventsByCode(scheduleCode, name, new Listener<ResponseData, ResponseData>() {
+            @Override
+            public void onSucceeded(ResponseData result) {
+                showSetNameDialog(scheduleCode);
+                mProgressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onFailed(ResponseData result) {
+                ToastManager.messageSync(App.getContext(), "Schedule not found. Please check your code");
+                mProgressBar.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private Spannable setAltitudeSpan() {
+        String messageText = getString(R.string.tap_the_three_dots);
+        String warningText = getString(R.string.warning_text);
+
+        return new SpannableString(messageText + warningText);
+    }
+
+    private void updateMenuTitles(Menu menu) {
+        MenuItem bedMenuItem = menu.findItem(R.id.actionShareMySchedule);
+        Long myScheduleCode = Model.instance().getSharedScheduleManager().getMyScheduleCode();
+        if (myScheduleCode != SharedScheduleManager.MY_DEFAULT_SCHEDULE_CODE) {
+            bedMenuItem.setTitle(getString(R.string.share_my_schedule) + myScheduleCode);
+        }else {
+            bedMenuItem.setEnabled(false);
+        }
+    }
+}

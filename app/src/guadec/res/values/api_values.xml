@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="api_value_base_url">https://www.comecso.com/connfa/api/v2/vii-cncs/</string>
+    <string name="api_mpabox">pk.eyJ1IjoiYW1pc2hhIiwiYSI6ImNqaGFtaXg2aTBwNnczNXRpbnFzMXB6N2QifQ.4mXeAGz-9bVOrg2Yqh9U1g</string>
+    <string name="twitter_feed_url">https://twitter.com/COMECSO?lang=es</string>
+</resources>

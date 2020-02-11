@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+
+    <RelativeLayout
+        android:id="@+id/layoutTime"
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:background="@color/primary"
+        android:elevation="6dp"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="62dp"
+            android:background="@android:color/transparent">
+
+            <TextView
+                android:id="@+id/toolbarTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="8dp"
+                android:singleLine="true"
+                android:textColor="@color/white"
+                android:textSize="@dimen/text_size_20"
+                android:textStyle="bold"
+                tools:text="Title" />
+        </androidx.appcompat.widget.Toolbar>
+
+        <com.lemberg.connfa.ui.view.FontTextView
+            android:id="@+id/txtEventName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/label_where"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="10dp"
+            android:textColor="@color/white"
+            android:textSize="@dimen/text_size_16"
+            android:textStyle="bold"
+            app:custom_font="@string/custom_regular_font"
+            tools:text="lorem_ipsum" />
+
+        <com.lemberg.connfa.ui.view.FontTextView
+            android:id="@+id/label_where"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="10dp"
+            android:textColor="@color/white_100"
+            android:textSize="@dimen/text_size_small"
+            app:custom_font="@string/regular_font"
+            tools:text="lorem_ipsum" />
+    </RelativeLayout>
+
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/layoutTime"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/layoutPreDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <com.lemberg.connfa.ui.view.FontTextView
+                    android:id="@+id/txtTrack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:textColor="@color/grey_500"
+                    android:textSize="@dimen/text_size_15"
+                    app:custom_font="@string/regular_font"
+                    tools:text="lorem_ipsum" />
+
+                <LinearLayout
+                    android:id="@+id/layoutExpLevel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.lemberg.connfa.ui.view.FontTextView
+                        android:id="@+id/txtExpLevel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom"
+                        android:layout_marginEnd="8dp"
+                        android:textColor="@color/grey_500"
+                        android:textSize="@dimen/text_size_15"
+                        app:custom_font="@string/regular_font"
+                        tools:text="lorem_ipsum" />
+
+                    <ImageView
+                        android:id="@+id/imgExperience"
+                        android:layout_width="17dp"
+                        android:layout_height="17dp"
+                        android:layout_gravity="center"
+                        tools:src="@drawable/ic_launcher" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <View
+                android:id="@+id/topSpeakersDivider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/white_200" />
+
+            <com.lemberg.connfa.ui.view.FontTextView
+                android:id="@+id/holderHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/padding"
+                android:paddingTop="@dimen/padding_small"
+                android:paddingEnd="@dimen/padding"
+                android:paddingBottom="@dimen/padding_small"
+                android:text="@string/speakers_only"
+                android:textColor="@color/item_selection"
+                app:custom_font="@string/medium_font" />
+
+            <LinearLayout
+                android:id="@+id/holderSpeakers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <View
+                android:id="@+id/botSpeakersDivider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/white_200" />
+
+            <LinearLayout
+                android:id="@+id/whoIsGoingButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/padding"
+                android:paddingEnd="@dimen/padding"
+                android:gravity="center_vertical">
+
+                <com.lemberg.connfa.ui.view.FontTextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/whoisgoing"
+                    android:textColor="@color/item_selection"
+                    app:custom_font="@string/medium_font"/>
+
+                <ImageView
+                    android:id="@+id/expandIndicator"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    app:srcCompat="@drawable/ic_group_arrow_down" />
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/friendsHolder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp" />
+
+            <View
+                android:id="@+id/botFriendsDivider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/white_200" />
+
+            <WebView
+                android:id="@+id/webView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="20dp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/layoutTime"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="-25dp"
+        android:id="@+id/layoutFavorite"
+        android:elevation="6dp"
+        android:background="@drawable/shape_favorite">
+
+        <CheckBox
+            android:id="@+id/checkBoxFavorite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/selector_favorite"
+            android:button="@null"
+            android:clickable="false" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_below="@id/layoutTime"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:srcCompat="@drawable/ic_no_details" />
+
+        <com.lemberg.connfa.ui.view.FontTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_top_placeholder_text"
+            android:gravity="center_horizontal"
+            android:text="@string/placeholder_no_details"
+            android:textColor="@color/placeholder_text"
+            android:textSize="@dimen/text_size_placeholder"
+            app:custom_font="@string/regular_font" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:padding="@dimen/padding_small"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:elevation="2dp"
+        android:background="@drawable/progressbar_bg"
+        android:theme="@style/CircularProgress"/>
+
+</RelativeLayout>
+
+

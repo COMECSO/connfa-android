@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+
+    <RelativeLayout
+        android:id="@+id/headerColor"
+        android:layout_width="wrap_content"
+        android:layout_height="120dp"
+        android:background="@color/primary"
+        android:orientation="vertical"
+        android:elevation="6dp">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent">
+
+            <TextView
+                android:id="@+id/toolbarTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="8dp"
+                android:singleLine="true"
+                android:textColor="@color/white"
+                android:textSize="@dimen/text_size_20"
+                android:textStyle="bold"
+                tools:text="Title"/>
+        </androidx.appcompat.widget.Toolbar>
+
+        <com.lemberg.connfa.ui.view.FontTextView
+            android:id="@+id/txtSpeakerName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="35dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_alignParentBottom="true"
+            android:textColor="@color/white"
+            android:textSize="@dimen/text_size_16"
+            android:textStyle="bold"
+            app:custom_font="@string/custom_regular_font"
+            tools:text="lorem_ipsum" />
+
+        <com.lemberg.connfa.ui.view.FontTextView
+            android:id="@+id/txtSpeakerPosition"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="86dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="15dp"
+            android:textColor="@color/white_100"
+            android:textSize="@dimen/text_size_small"
+            app:custom_font="@string/regular_font"
+            tools:text="lorem_ipsum" />
+    </RelativeLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/headerColor"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/white"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/holderButtons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="12dp"
+                android:background="@android:color/white"
+                android:orientation="horizontal">
+
+
+                <Button
+                    android:id="@+id/btnTwitter"
+                    style="@style/Widget.AppCompat.Button.Borderless.Colored"
+                    android:layout_width="100dp"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/btn_twitter_normal"
+                    android:clickable="true"
+                    android:elevation="10dp"
+                    android:focusable="true"
+                    android:onClick="onClick" />
+
+
+                <Button
+                    android:id="@+id/btnWebsite"
+                    style="@style/Widget.AppCompat.Button.Borderless.Colored"
+                    android:layout_width="100dp"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/btn_website_normal"
+                    android:clickable="true"
+                    android:elevation="10dp"
+                    android:focusable="true"
+                    android:onClick="onClick" />
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/imgEmptyView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="60dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/ic_no_details" />
+
+                <com.lemberg.connfa.ui.view.FontTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="5dp"
+                    android:clickable="false"
+                    android:text="@string/nodetails"
+                    android:textColor="#bbbbbb"
+                    android:textSize="@dimen/text_size_medium"
+                    app:custom_font="@string/regular_font" />
+
+            </LinearLayout>
+
+            <WebView
+                android:id="@+id/webView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <LinearLayout
+                android:id="@+id/layoutEvents"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@android:color/white"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:id="@+id/layout_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_below="@id/headerColor"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:srcCompat="@drawable/ic_no_details" />
+
+        <com.lemberg.connfa.ui.view.FontTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_top_placeholder_text"
+            android:gravity="center_horizontal"
+            android:text="@string/placeholder_no_details"
+            android:textColor="@color/placeholder_text"
+            android:textSize="@dimen/text_size_placeholder"
+            app:custom_font="@string/regular_font" />
+    </LinearLayout>
+
+
+    <com.lemberg.connfa.ui.view.CircleImageView
+        android:id="@+id/imgPhoto"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="70dp"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/ic_default_avatar_small"
+        android:elevation="8dp"
+        android:scaleType="fitXY"
+        android:visibility="invisible" />
+
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:padding="@dimen/padding_small"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:background="@drawable/progressbar_bg"
+        android:theme="@style/CircularProgress"
+        android:elevation="2dp" />
+
+</RelativeLayout>
